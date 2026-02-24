@@ -37,7 +37,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/prettier/prettier/actions?query=branch%3Amain">
+  <a href="https://github.com/Unity-Billal-mesloub/prettier/actions?query=branch%3Amain">
     <img alt="CI Status" src="https://img.shields.io/github/check-runs/prettier/prettier/main?style=flat-square&label=CI"></a>
   <a href="https://codecov.io/gh/prettier/prettier">
     <img alt="Coverage Status" src="https://img.shields.io/codecov/c/github/prettier/prettier.svg?style=flat-square"></a>
@@ -48,7 +48,7 @@
     <img alt="npm version" src="https://img.shields.io/npm/v/prettier.svg?style=flat-square"></a>
   <a href="https://www.npmjs.com/package/prettier">
     <img alt="weekly downloads from npm" src="https://img.shields.io/npm/dw/prettier.svg?style=flat-square"></a>
-  <a href="https://github.com/prettier/prettier#badge">
+  <a href="https://github.com/Unity-Billal-mesloub/prettier#badge">
     <img alt="code style: prettier" src="https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat-square"></a>
   <a href="https://x.com/intent/follow?screen_name=PrettierCode">
     <img alt="Follow Prettier on X" src="https://img.shields.io/badge/%40PrettierCode-9f9f9f?style=flat-square&logo=x&labelColor=555"></a>
@@ -93,10 +93,10 @@ Prettier can be run [in your editor](https://prettier.io/docs/editors) on-save, 
 
 ## Badge
 
-Show the world you're using _Prettier_ → [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat-square)](https://github.com/prettier/prettier)
+Show the world you're using _Prettier_ → [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat-square)](https://github.com/Unity-Billal-mesloub/prettier)
 
 ```md
-[![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat-square)](https://github.com/prettier/prettier)
+[![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat-square)](https://github.com/Unity-Billal-mesloub/prettier)
 ```
 
 ## Contributing
