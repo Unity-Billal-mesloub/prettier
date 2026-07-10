@@ -33,7 +33,7 @@ const categoryParsers = new Map([
         "hermes",
         "babel",
       ],
-      extensions: [".js", ".cjs", ".mjs", ".unknown"],
+      extensions: [".js", ".cjs", ".mjs", ".flow", ".unknown"],
     },
   ],
   [
@@ -46,7 +46,11 @@ const categoryParsers = new Map([
   ],
   [
     "html",
-    { parsers: ["html"], verifyParsers: [], extensions: [".html", ".svg"] },
+    {
+      parsers: ["html"],
+      verifyParsers: ["vue", "mjml", "lwc", "angular"],
+      extensions: [".html", ".svg"],
+    },
   ],
   [
     "mjml",

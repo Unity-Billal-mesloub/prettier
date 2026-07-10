@@ -40,6 +40,7 @@ const isPrintingImportAttributes = createTypeCheckFunction([
 ]);
 
 const isPrintingFlowEnumBody = createTypeCheckFunction([
+  "EnumBody",
   "EnumBooleanBody",
   "EnumNumberBody",
   "EnumBigIntBody",
@@ -54,11 +55,12 @@ const isPrintingFlowEnumBody = createTypeCheckFunction([
 - `ExportDefaultDeclaration`
 - `ExportNamedDeclaration`
 - `ExportAllDeclaration`
-- `EnumBooleanBody` (Flow)
-- `EnumNumberBody` (Flow)
-- `EnumBigIntBody` (Flow)
-- `EnumStringBody` (Flow)
-- `EnumSymbolBody` (Flow)
+- `EnumBody` (Flow)
+- `EnumBooleanBody` (Flow, removed)
+- `EnumNumberBody` (Flow, removed)
+- `EnumBigIntBody` (Flow, removed)
+- `EnumStringBody` (Flow, removed)
+- `EnumSymbolBody` (Flow, removed)
 - `DeclareExportDeclaration` (Flow)
 - `DeclareExportAllDeclaration` (Flow)
 - `TSEnumDeclaration`(TypeScript)
@@ -103,7 +105,7 @@ function printObject(path, options, print) {
   /** @type {Doc[]} */
   let separatorParts = [];
   const parts = path.map(({ node }) => {
-    const result = [...separatorParts, group(print())];
+    const result = [...separatorParts, print()];
     separatorParts = [",", line];
     if (isNextLineEmpty(node, options)) {
       separatorParts.push(hardline);

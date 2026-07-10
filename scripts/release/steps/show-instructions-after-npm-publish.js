@@ -11,11 +11,12 @@ const RELEASE_URL_BASE = "https://github.com/prettier/prettier/releases/new?";
 export function getReleaseUrl(version, previousVersion) {
   const semverDiff = semver.diff(version, previousVersion);
   const isPatch = semverDiff === "patch";
+  const tag = version;
   let body;
   if (isPatch) {
     const urlToChangelog =
-      "https://github.com/prettier/prettier/blob/main/CHANGELOG.md#" +
-      version.split(".").join("");
+      `https://github.com/prettier/prettier/blob/${tag}/CHANGELOG.md#` +
+      version.replaceAll(".", "");
     body = `🔗 [Changelog](${urlToChangelog})`;
   } else {
     const blogPostInfo = getBlogPostInfo(version);
@@ -25,11 +26,7 @@ export function getReleaseUrl(version, previousVersion) {
       body: `🔗 [Release note](https://prettier.io/${blogPostInfo.path})`,
     });
   }
-  const parameters = new URLSearchParams({
-    tag: version,
-    title: version,
-    body,
-  });
+  const parameters = new URLSearchParams({ tag, title: version, body });
   return `${RELEASE_URL_BASE}${parameters}`;
 }
 
@@ -39,7 +36,7 @@ export default async function showInstructionsAfterNpmPublish({
   next,
 }) {
   if (next) {
-    console.log(`${styleText.green.bold`Prettier ${version} published!`}`);
+    console.log(styleText.green.bold`Prettier ${version} published!`);
     await waitForEnter();
     return;
   }

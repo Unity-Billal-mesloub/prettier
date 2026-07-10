@@ -21,11 +21,15 @@ type PrettierCommentAdditionalProperties = {
   leading?: boolean;
 };
 
-type FlowAdditionalNode = {
-  type: "SatisfiesExpression";
-  expression: FlowESTree.Expression;
-  typeAnnotation: FlowESTree.TypeAnnotationType;
-};
+type FlowAdditionalNode =
+  | {
+      type: "SatisfiesExpression";
+      expression: FlowESTree.Expression;
+      typeAnnotation: FlowESTree.TypeAnnotationType;
+    }
+  | ({
+      type: "EnumBody";
+    } & Omit<FlowESTree.EnumDeclaration["body"], "type">);
 
 type PrettierNode = { type: "JsExpressionRoot"; node: Babel.Expression };
 
@@ -65,21 +69,17 @@ type ExtendNode<Input> = Input extends _Node
     : Input;
 
 export type NumericLiteral =
-  | NodeMap["NumericLiteral"]
-  | (NodeMap["Literal"] & { value: number });
+  NodeMap["NumericLiteral"] | (NodeMap["Literal"] & { value: number });
 
 export type StringLiteral =
-  | NodeMap["StringLiteral"]
-  | (NodeMap["Literal"] & { value: string });
+  NodeMap["StringLiteral"] | (NodeMap["Literal"] & { value: string });
 
 export type RegExpLiteral =
   | NodeMap["RegExpLiteral"]
   | (NodeMap["Literal"] & { regexp: { pattern: string; flags: string } });
 
 export type BigIntLiteral =
-  | NodeMap["BigIntLiteral"]
-  | (NodeMap["Literal"] & { bigint: string });
+  NodeMap["BigIntLiteral"] | (NodeMap["Literal"] & { bigint: string });
 
 export type BooleanLiteral =
-  | NodeMap["BigIntLiteral"]
-  | (NodeMap["BooleanLiteral"] & { value: boolean });
+  NodeMap["BigIntLiteral"] | (NodeMap["BooleanLiteral"] & { value: boolean });

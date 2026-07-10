@@ -273,6 +273,7 @@ function UsersSection() {
         <img
           src={user.greyImage}
           title={user.caption}
+          alt={user.caption}
           className={styles.userItemImage}
         />
       </a>
@@ -331,7 +332,7 @@ function UsersSection() {
             <div>
               <p>
                 More than{" "}
-                <strong data-placeholder="dependent-github">9.9 million</strong>{" "}
+                <strong data-placeholder="dependent-github">10 million</strong>{" "}
                 dependent repositories on GitHub
               </p>
               <Link
@@ -353,7 +354,7 @@ function UsersSection() {
             <div>
               <p>
                 More than{" "}
-                <strong data-placeholder="dependent-npm">19.4k</strong>{" "}
+                <strong data-placeholder="dependent-npm">20.5k</strong>{" "}
                 dependent packages on npm
               </p>
               <Link

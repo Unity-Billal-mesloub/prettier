@@ -24,6 +24,7 @@ import {
   printEnumDeclaration,
   printEnumMember,
   printFlowEnumBody,
+  printLegacyFlowEnumBody,
 } from "./enum.js";
 import { printFunction } from "./function.js";
 import { printFunctionType } from "./function-type.js";
@@ -56,6 +57,7 @@ import { printTypeParameter, printTypeParameters } from "./type-parameters.js";
 import { printTypePredicate } from "./type-predicate.js";
 import { printTypeQuery } from "./type-query.js";
 import { printUnionType } from "./union-type.js";
+import { printVariableDeclaration } from "./variable-declaration.js";
 
 function printFlow(path, options, print, args) {
   const { node } = path;
@@ -99,6 +101,11 @@ function printFlow(path, options, print, args) {
     case "DeclareNamespace":
       return ["declare namespace ", print("id"), " ", print("body")];
     case "DeclareVariable":
+      if (Array.isArray(node.declarations)) {
+        return printVariableDeclaration(path, options, print);
+      }
+
+      // TODO: Remove this part when hermes update AST
       return [
         printDeclareToken(path),
         // TODO: Only use `node.kind` when babel update AST
@@ -159,12 +166,15 @@ function printFlow(path, options, print, args) {
     case "EnumDeclaration":
       return printEnumDeclaration(path, print);
 
+    case "EnumBody":
+      return printFlowEnumBody(path, options, print);
+
     case "EnumBooleanBody":
     case "EnumNumberBody":
     case "EnumBigIntBody":
     case "EnumStringBody":
     case "EnumSymbolBody":
-      return printFlowEnumBody(path, options, print);
+      return printLegacyFlowEnumBody(path, options, print);
 
     case "EnumBooleanMember":
     case "EnumNumberMember":
@@ -208,8 +218,15 @@ function printFlow(path, options, print, args) {
       return ["?", print("typeAnnotation")];
     case "Variance": {
       const { kind } = node;
-      assert.ok(kind === "plus" || kind === "minus");
-      return kind === "plus" ? "+" : "-";
+      assert.ok(
+        kind === "plus" ||
+          kind === "minus" ||
+          kind === "readonly" ||
+          kind === "writeonly" ||
+          kind === "in" ||
+          kind === "out",
+      );
+      return kind === "plus" ? "+" : kind === "minus" ? "-" : `${kind} `;
     }
     case "KeyofTypeAnnotation":
       return ["keyof ", print("argument")];

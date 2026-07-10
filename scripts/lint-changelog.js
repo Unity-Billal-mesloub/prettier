@@ -6,7 +6,7 @@ import indexToPosition from "index-to-position";
 import { outdent } from "outdent";
 import remarkParse from "remark-parse";
 import unified from "unified";
-import { CHANGELOG_CATEGORIES } from "./utilities/changelog-categories.js";
+import { CHANGELOG_CATEGORIES } from "./utilities/changelog.js";
 
 const CHANGELOG_DIR = "changelog_unreleased";
 const TEMPLATE_FILE = "TEMPLATE.md";
@@ -159,7 +159,7 @@ function getCommentDescription(content, comment) {
   return `template comment on line ${startLine}-${endLine}`;
 }
 
-// Forbid html in title
+// Forbid HTML in title
 // https://github.com/prettier/prettier/issues/17089
 function validateTitle(displayPath, title) {
   const processor = unified().use(remarkParse);

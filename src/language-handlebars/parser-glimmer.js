@@ -34,7 +34,7 @@ function addBackslash(node) {
   }
 }
 
-const isIndex = (value) => Number.isInteger(value) && value >= 0;
+const isIndex = (value) => Number.isSafeInteger(value) && value >= 0;
 // Add `offset` to `loc.{start,end}`
 const setOffset = (node) => {
   const { start, end } = node.loc;
@@ -166,10 +166,13 @@ function getErrorLocation(error) {
   const { location, hash } = error;
   if (location) {
     const { start, end } = location;
-    if (typeof end.line !== "number") {
-      return { start };
-    }
-    return location;
+    return {
+      start: { line: start.line, column: start.column + 1 },
+      end:
+        typeof end.line === "number"
+          ? { line: end.line, column: end.column + 1 }
+          : undefined,
+    };
   }
 
   if (hash) {

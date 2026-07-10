@@ -11,7 +11,9 @@ import {
 import getStringWidth from "../../utilities/get-string-width.js";
 import isNonEmptyArray from "../../utilities/is-non-empty-array.js";
 import { getCallArguments } from "../utilities/call-arguments.js";
+import { CommentCheckFlags, hasComment } from "../utilities/comments.js";
 import { hasLeadingOwnLineComment } from "../utilities/has-leading-own-line-comment.js";
+import { isIndentableBlockComment } from "../utilities/indentable-block-comment.js";
 import { isLoneShortArgument } from "../utilities/is-lone-short-argument.js";
 import { isObjectProperty } from "../utilities/is-object-property.js";
 import {
@@ -138,7 +140,8 @@ function chooseLayout(path, options, print, leftDoc, rightPropertyName) {
   if (
     isHeadOfLongChain ||
     (isUnionType(rightNode) && !shouldHugUnionType(rightNode)) ||
-    hasLeadingOwnLineComment(options.originalText, rightNode)
+    hasLeadingOwnLineComment(options.originalText, rightNode) ||
+    hasComment(rightNode, CommentCheckFlags.Leading, isIndentableBlockComment)
   ) {
     return "break-after-operator";
   }
@@ -147,7 +150,7 @@ function chooseLayout(path, options, print, leftDoc, rightPropertyName) {
     node.type === "ImportAttribute" ||
     (rightNode.type === "CallExpression" &&
       rightNode.callee.name === "require") ||
-    // do not put values on a separate line from the key in json
+    // do not put values on a separate line from the key in JSON
     path.root.type === "JsonRoot"
   ) {
     return "never-break-after-operator";

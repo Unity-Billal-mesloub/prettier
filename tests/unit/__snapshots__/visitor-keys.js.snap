@@ -246,6 +246,7 @@ exports[`visitor keys estree 1`] = `
     "typeParameters",
   ],
   "DeclareVariable": [
+    "declarations",
     "id",
   ],
   "DeclaredPredicate": [
@@ -273,6 +274,9 @@ exports[`visitor keys estree 1`] = `
   "EnumBigIntMember": [
     "id",
     "init",
+  ],
+  "EnumBody": [
+    "members",
   ],
   "EnumBooleanBody": [
     "members",
@@ -1290,7 +1294,12 @@ exports[`visitor keys graphql 1`] = `
   "DirectiveDefinition": [
     "arguments",
     "description",
+    "directives",
     "locations",
+    "name",
+  ],
+  "DirectiveExtension": [
+    "directives",
     "name",
   ],
   "Document": [
@@ -1328,6 +1337,10 @@ exports[`visitor keys graphql 1`] = `
     "type",
   ],
   "FloatValue": [],
+  "FragmentArgument": [
+    "name",
+    "value",
+  ],
   "FragmentDefinition": [
     "description",
     "directives",
@@ -1337,6 +1350,7 @@ exports[`visitor keys graphql 1`] = `
     "variableDefinitions",
   ],
   "FragmentSpread": [
+    "arguments",
     "directives",
     "name",
   ],
@@ -1494,6 +1508,7 @@ exports[`visitor keys html 1`] = `
   "element": [
     "attrs",
     "children",
+    "startTagComments",
   ],
   "ieConditionalComment": [
     "children",
@@ -1506,6 +1521,7 @@ exports[`visitor keys html 1`] = `
   "root": [
     "children",
   ],
+  "startTagComment": [],
   "text": [
     "children",
   ],

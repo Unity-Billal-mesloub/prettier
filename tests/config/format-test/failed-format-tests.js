@@ -17,6 +17,7 @@ const unstableTests = new Map(
     ],
     "flow/hook/declare-hook.js",
     "flow/hook/hook-type-annotation.js",
+    "flow/comments/type_annotations.js",
     "typescript/prettier-ignore/mapped-types.ts",
     "typescript/prettier-ignore/issue-14238.ts",
     "js/for-of/comments.js",
@@ -33,7 +34,8 @@ const unstableTests = new Map(
     "typescript/call/callee-comments.ts",
     "js/arrows/arrow-chain-with-trailing-comments.js",
     "typescript/as/comments/18160.ts",
-    "js/arrows/issue-14702.js",
+    "js/sequence-expression/parenthesized-trailing-comment-unstable.js",
+    "typescript/union/consistent-with-flow/single-type.ts",
   ].map((fixture) => {
     const [file, isUnstable = () => true] = Array.isArray(fixture)
       ? fixture
@@ -105,6 +107,10 @@ const disabledTests = new Map(
       // https://github.com/typescript-eslint/typescript-eslint/issues/11389
       "js/import/long-module-name/import-defer.js",
       "js/import/long-module-name/import-source.js",
+    ],
+    yaml: [
+      // Bug: https://github.com/eemeli/yaml/issues/646
+      "yaml/spec/spec-example-2-11-mapping-between-sequences.yml",
     ],
   }).map(([parser, tests]) => [
     parser,

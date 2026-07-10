@@ -12,6 +12,7 @@ import {
 import getNodeContent from "../get-node-content.js";
 import {
   forceBreakContent,
+  isPreLikeNode,
   isScriptLikeTag,
   isVueCustomBlock,
   shouldPreserveContent,
@@ -19,6 +20,7 @@ import {
 import { printChildren } from "./children.js";
 import {
   needsToBorrowLastChildClosingTagEndMarker,
+  needsToBorrowParentClosingTagStartMarker,
   needsToBorrowPrevClosingTagEndMarker,
   printClosingTag,
   printClosingTagSuffix,
@@ -76,6 +78,12 @@ function printElement(path, options, print) {
       printClosingTag(node, options),
     ]);
 
+  if (node.children.length === 0) {
+    return printTag(
+      node.hasDanglingSpaces && node.isDanglingSpaceSensitive ? line : "",
+    );
+  }
+
   const printChildrenDoc = (childrenDoc) => {
     if (shouldHugContent) {
       return indentIfBreak(childrenDoc, { groupId: attrGroupId });
@@ -124,6 +132,12 @@ function printElement(path, options, print) {
       }
       return "";
     }
+    if (
+      isPreLikeNode(node) &&
+      needsToBorrowParentClosingTagStartMarker(node.lastChild)
+    ) {
+      return "";
+    }
     if (shouldHugContent) {
       return ifBreak(softline, "", { groupId: attrGroupId });
     }
@@ -146,12 +160,6 @@ function printElement(path, options, print) {
     }
     return softline;
   };
-
-  if (node.children.length === 0) {
-    return printTag(
-      node.hasDanglingSpaces && node.isDanglingSpaceSensitive ? line : "",
-    );
-  }
 
   return printTag([
     forceBreakContent(node) ? breakParent : "",

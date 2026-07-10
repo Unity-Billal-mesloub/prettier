@@ -26,12 +26,18 @@ import {
   isConditionalType,
   isIntersectionType,
   isMemberExpression,
+  isTypeAlias,
   isUnionType,
 } from "../utilities/node-types.js";
 import { stripComments } from "../utilities/strip-comments.js";
 import { handleForXStatementComments } from "./attach/handle-for-x-statement-comments.js";
 import { handleIfStatementComments } from "./attach/handle-if-statement-comments.js";
+import { handleSwitchStatementComments } from "./attach/handle-switch-statement-comments.js";
 import { handleWhileLikeComments } from "./attach/handle-while-like-comments.js";
+import {
+  addLeadingCommentToPossibleUnionType,
+  shouldAttachToUnionTypeFirstElement,
+} from "./attach/union-type.js";
 import {
   addBlockOrNotComment,
   addBlockStatementFirstComment,
@@ -69,6 +75,7 @@ function handleOwnLineComment(context) {
     handleMemberExpressionComments,
     handleIfStatementComments,
     handleWhileLikeComments,
+    handleSwitchStatementComments,
     handleTryStatementComments,
     handleClassComments,
     handleForXStatementComments,
@@ -83,6 +90,7 @@ function handleOwnLineComment(context) {
     handleCommentsInDestructuringPattern,
     handleTSMappedTypeComments,
     handleBinaryCastExpressionComment,
+    handleUnionTypeLeadingComments,
   ].some((fn) => fn(context));
 }
 
@@ -99,6 +107,7 @@ function handleEndOfLineComment(context) {
     handleModuleSpecifiersComments,
     handleIfStatementComments,
     handleWhileLikeComments,
+    handleSwitchStatementComments,
     handleTryStatementComments,
     handleClassComments,
     handleForXStatementComments,
@@ -106,12 +115,13 @@ function handleEndOfLineComment(context) {
     handleCallExpressionComments,
     handlePropertyComments,
     handleOnlyComments,
-    handleVariableDeclaratorComments,
+    handleAssignmentLikeComments,
     handleSwitchDefaultCaseComments,
     handleLastUnionElementInExpression,
     handleLastBinaryOperatorOperand,
     handleTSMappedTypeComments,
     handleArrowExpressionComments,
+    handleParenthesizedExpressionTrailingComment,
     handlePropertySignatureComments,
     handleBinaryCastExpressionComment,
   ].some((fn) => fn(context));
@@ -127,14 +137,18 @@ function handleRemainingComment(context) {
     handleIgnoreComments,
     handleIfStatementComments,
     handleWhileLikeComments,
+    handleSwitchStatementComments,
     handleForXStatementComments,
     handleMethodNameComments,
     handleOnlyComments,
+    handleAssignmentLikeComments,
     handleTSMappedTypeComments,
     handleCommentAfterArrowParams,
     handleFunctionNameComments,
     handleTSFunctionTrailingComments,
+    handleParenthesizedExpressionTrailingComment,
     handleBinaryCastExpressionComment,
+    handleUnionTypeLeadingComments,
   ].some((fn) => fn(context));
 }
 
@@ -285,7 +299,7 @@ function handleClassComments({
   if (isClassLikeNode(enclosingNode)) {
     // @ts-expect-error -- Safe
     const { decorators } = enclosingNode;
-    if (isNonEmptyArray(decorators) && !(followingNode?.type === "Decorator")) {
+    if (isNonEmptyArray(decorators) && followingNode?.type !== "Decorator") {
       addTrailingComment(decorators.at(-1), comment);
       return true;
     }
@@ -352,7 +366,7 @@ function handleMethodNameComments({
   followingNode,
   text,
 }) {
-  // This is only needed for estree parsers (flow, typescript) to attach
+  // This is only needed for estree parsers (Flow, TypeScript) to attach
   // after a method name:
   // obj = { fn /*comment*/() {} };
   if (
@@ -540,7 +554,16 @@ function handleLastFunctionParameterComments({
       precedingNode?.type === "ArrayPattern" ||
       precedingNode?.type === "RestElement" ||
       precedingNode?.type === "TSParameterProperty") &&
-    isRealFunctionLikeNode(enclosingNode) &&
+    (isRealFunctionLikeNode(enclosingNode) ||
+      // `TSEmptyBodyFunctionExpression` opts out of comment attachment, so
+      // the comment walker bubbles up to its wrapper. Three wrappers occur:
+      // `TSAbstractMethodDefinition` (always), and `MethodDefinition` in
+      // `declare class` or overload position. A plain `MethodDefinition` with
+      // a body is a normal method and must not match here, so the
+      // `MethodDefinition` branch checks `value.type` to skip it.
+      ((enclosingNode?.type === "TSAbstractMethodDefinition" ||
+        enclosingNode?.type === "MethodDefinition") &&
+        enclosingNode.value.type === "TSEmptyBodyFunctionExpression")) &&
     getNextNonSpaceNonCommentCharacter(text, locEnd(comment)) === ")"
   ) {
     addTrailingComment(precedingNode, comment);
@@ -745,6 +768,7 @@ const isAssignmentLikeNode = createTypeCheckFunction([
   "TypeAlias",
   "TSTypeAliasDeclaration",
 ]);
+
 const isComplexExprNode = createTypeCheckFunction([
   "ObjectExpression",
   "ArrayExpression",
@@ -753,19 +777,33 @@ const isComplexExprNode = createTypeCheckFunction([
   "ObjectTypeAnnotation",
   "TSTypeLiteral",
 ]);
-function handleVariableDeclaratorComments({
-  comment,
-  enclosingNode,
-  followingNode,
-}) {
+
+/** @param {CommentContext} context */
+function handleAssignmentLikeComments(context) {
+  const { comment, enclosingNode, followingNode, options, placement } = context;
   if (
     isAssignmentLikeNode(enclosingNode) &&
     followingNode &&
+    placement === "endOfLine" &&
     (isComplexExprNode(followingNode) || isBlockComment(comment))
   ) {
-    addLeadingComment(followingNode, comment);
-    return true;
+    return addLeadingCommentToPossibleUnionType(followingNode, context);
   }
+
+  // Ideally, we should only check cases that the right side is a single-element union or intersection type
+  // We already strip the wrapper, there is no way to know it, so we only check "type alias"
+  if (isTypeAlias(enclosingNode) && followingNode) {
+    const leftSide = enclosingNode.id;
+    const equalsTokenIndex = stripComments(options).indexOf(
+      "=",
+      locEnd(leftSide),
+    );
+
+    if (locStart(comment) >= equalsTokenIndex) {
+      return addLeadingCommentToPossibleUnionType(followingNode, context);
+    }
+  }
+
   return false;
 }
 
@@ -1056,6 +1094,62 @@ function handleArrowExpressionComments({
 
   if (!isBeforeArrow) {
     addBlockOrNotComment(followingNode, comment);
+    return true;
+  }
+
+  return false;
+}
+
+function handleParenthesizedExpressionTrailingComment({
+  comment,
+  enclosingNode,
+  precedingNode,
+  followingNode,
+}) {
+  if (!followingNode && enclosingNode && precedingNode) {
+    if (
+      enclosingNode.type === "ExpressionStatement" &&
+      enclosingNode.expression === precedingNode
+    ) {
+      addTrailingComment(enclosingNode, comment);
+      return true;
+    }
+
+    const isSequence = precedingNode.type === "SequenceExpression";
+    const isAssignment = precedingNode.type === "AssignmentExpression";
+
+    if (
+      (isSequence || isAssignment) &&
+      ((enclosingNode.type === "ArrowFunctionExpression" &&
+        enclosingNode.body === precedingNode) ||
+        (enclosingNode.type === "VariableDeclarator" &&
+          enclosingNode.init === precedingNode) ||
+        (enclosingNode.type === "ReturnStatement" &&
+          enclosingNode.argument === precedingNode) ||
+        (enclosingNode.type === "AssignmentExpression" &&
+          enclosingNode.right === precedingNode))
+    ) {
+      addTrailingComment(
+        isSequence ? precedingNode.expressions.at(-1) : precedingNode.right,
+        comment,
+      );
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * @param {CommentContext} context
+ * @returns {boolean}
+ */
+function handleUnionTypeLeadingComments(context) {
+  const { followingNode, comment } = context;
+
+  if (shouldAttachToUnionTypeFirstElement(followingNode, context)) {
+    // @ts-expect-error -- safe
+    addLeadingComment(followingNode.types[0], comment);
     return true;
   }
 
