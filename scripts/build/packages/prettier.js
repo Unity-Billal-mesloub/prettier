@@ -2,7 +2,11 @@ import { createRequire } from "node:module";
 import path from "node:path";
 import url from "node:url";
 import { outdent } from "outdent";
-import { DIST_DIR, PROJECT_ROOT } from "../../utilities/index.js";
+import {
+  DIST_DIR,
+  PRODUCTION_MINIMAL_NODE_JS_VERSION,
+  PROJECT_ROOT,
+} from "../../utilities/index.js";
 import { createJavascriptModuleBuilder } from "../builders/javascript-module.js";
 import esmifyTypescriptEslint from "../hacks/esmify-typescript-eslint.js";
 import modifyTypescriptModule from "../hacks/modify-typescript-module.js";
@@ -133,6 +137,10 @@ const cliModule = {
         {
           module: path.join(PROJECT_ROOT, "bin/prettier.cjs"),
           process(text) {
+            text = text.replace(
+              'require("../package.json").engines.node.replace(">=", "")',
+              JSON.stringify(PRODUCTION_MINIMAL_NODE_JS_VERSION),
+            );
             text = text.replace(
               "../src/cli/index.js",
               "../internal/legacy-cli.mjs",
@@ -385,7 +393,7 @@ const pluginFiles = [
         },
         {
           file: "@typescript-eslint/typescript-estree/dist/parseSettings/warnAboutTSVersion.js",
-          text: "export const warnAboutTSVersion = () => {};",
+          text: "export const handleUnsupportedTSVersion = () => {};",
         },
         {
           file: "@typescript-eslint/typescript-estree/dist/version-check.js",
@@ -524,11 +532,34 @@ const pluginFiles = [
   {
     input: "src/plugins/meriyah.js",
     replaceModule: [
-      // We don't use value of JSXText
       {
         module: resolveEsmModulePath("meriyah"),
-        find: "parser.tokenValue = decodeHTMLStrict(raw);",
-        replacement: "parser.tokenValue = raw;",
+        process(text) {
+          // `structuredClone` is used to clone node
+          text = outdent`
+            const structuredClone =
+              globalThis.structuredClone ??
+              ((node) => ({ ...node, range: [...node.range] }));
+
+            ${text}
+          `;
+
+          // We don't use value of JSXText
+          text = text.replace(
+            "const decodeMap = ",
+            "const decodeMap = undefined &&",
+          );
+          text = text.replace(
+            "const entities = ",
+            "const entities = undefined &&",
+          );
+          text = text.replaceAll(
+            "parser.tokenValue = decodeHTMLStrict(raw);",
+            "parser.tokenValue = raw;",
+          );
+
+          return text;
+        },
       },
     ],
   },
